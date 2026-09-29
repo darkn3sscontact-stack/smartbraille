@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-09-29T16:58:34.742509+00:00",
+  "health": {
+    "build": "1.0.0",
+    "model_state": "ready",
+    "model": "models/georgian-turbo",
+    "device": "cpu",
+    "compute_type": "int8",
+    "language": "ka",
+    "engine": "faster-whisper",
+    "model_error": null,
+    "voice_available": true,
+    "voice_engine": "Piper / Natia / ka-GE",
+    "max_audio_seconds": 30,
+    "max_audio_bytes": 6000000,
+    "busy": false,
+    "timestamp": "2026-09-29T16:58:34.371447+00:00"
+  },
+  "samples": [
+    {
+      "text": "გამარჯობა. მოდი, ერთად ვისწავლოთ ქართული ბრაილი.",
+      "rate": 150,
+      "bytes": 175148,
+      "duration": 3.9706122448979593,
+      "sample_rate": 22050,
+      "processing_ms": 234
+    },
+    {
+      "text": "დედა და მამა",
+      "rate": 110,
+      "bytes": 54316,
+      "duration": 1.230657596371882,
+      "sample_rate": 22050,
+      "processing_ms": 80
+    },
+    {
+      "text": "დედა და მამა",
+      "rate": 190,
+      "bytes": 35372,
+      "duration": 0.8010884353741496,
+      "sample_rate": 22050,
+      "processing_ms": 55
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "original": "Device overview render",
+    "path": "web/public/assets/device/device-overview-original.jpeg",
+    "sha256": "893612bfcae03a7f16ff19361c702aeef342bbb497f6f3df011dddd7aaf6ec3a"
+  },
+  {
+    "original": "Device mechanism render",
+    "path": "web/public/assets/device/device-mechanism-original.jpeg",
+    "sha256": "284f4874c7cc147742dca2f64e344c982501cc283463c43a31cf1a8495956414"
+  },
+  {
+    "original": "Device top cell render",
+    "path": "web/public/assets/device/device-top-cell-original.jpeg",
+    "sha256": "b9260978fff5e73cbb64e3bd0f45c7f20c296bf4c4f4e0d4e89cff346052fe17"
+  }
+]

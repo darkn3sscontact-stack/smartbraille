@@ -1,0 +1,34 @@
+node_modules/
+web/dist/
+.venv/
+.cache/
+.env
+__pycache__/
+.pytest_cache/
+tmp/
+models/
+tools/
+test-results/
+playwright-report/
+*.log
+
+# Machine-specific deployment state, credentials and generated artifacts.
+.env.*
+!.env.example
+deploy/runtime/
+*.pem
+*.key
+*.pfx
+*.p12
+*.tsbuildinfo
+
+# Private source brief/annexes and local investigation outputs.
+references/
+INPUT_MANIFEST.json
+docs/MATERIAL_REVIEW.md
+docs/ASSUMPTIONS.md
+docs/EVIDENCE_MAP.md
+docs/*results.json
+docs/*comparison.json
+docs/decoder-diagnostic.json
+docs/*.wav
