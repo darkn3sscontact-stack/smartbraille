@@ -1,8 +1,9 @@
 import {createContext,useContext,useEffect,useRef,useState,type ReactNode} from 'react';
 import { Mic,Square,X,Volume2,VolumeX,Pause,Play } from 'lucide-react';
 import type {RecognitionEvent} from './core';
+import {withTimeout} from './request';
 export interface Health {model_state:string;model:string;engine:string;voice_available:boolean;voice_engine:string|null;max_audio_seconds:number;device:string;compute_type:string;build:string;timestamp:string}
-export async function getHealth():Promise<Health>{const r=await fetch('/api/health',{signal:AbortSignal.timeout(5000)});if(!r.ok)throw Error('ხმოვანი სერვისი მიუწვდომელია.');return r.json();}
+export async function getHealth():Promise<Health>{return withTimeout(async signal=>{const r=await fetch('/api/health',{signal});if(!r.ok)throw Error('ხმოვანი სერვისი მიუწვდომელია.');return r.json();},5000);}
 const SpeechContext=createContext<{speak:(text:string)=>void;stop:()=>void;engine:string|null;error:string;muted:boolean;setMuted:(v:boolean)=>void;rate:number;setRate:(v:number)=>void;pause:()=>void;resume:()=>void;micActive:boolean;setMicActive:(active:boolean)=>void}>({} as never);
 export const useSpeech=()=>useContext(SpeechContext);
 export function SpeechProvider({children}:{children:ReactNode}){
@@ -12,7 +13,7 @@ export function SpeechProvider({children}:{children:ReactNode}){
  useEffect(()=>{getHealth().then(h=>setEngine(h.voice_available?h.voice_engine:null)).catch(()=>{});return()=>stop();},[]);
  function stop(){sequence.current++;controller.current?.abort();audio.current?.pause();audio.current=null;if(audioURL.current)URL.revokeObjectURL(audioURL.current);audioURL.current='';}
  async function speak(text:string){stop();setError('');if(muted||micRef.current||!text.trim())return;const id=sequence.current;
-  try{controller.current=new AbortController();const r=await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,rate}),signal:AbortSignal.any([controller.current.signal,AbortSignal.timeout(25000)])});if(!r.ok){const e=await r.json();throw Error(e.detail||'ქართული ხმა მიუწვდომელია.');}const blob=await r.blob();if(id!==sequence.current)return;audioURL.current=URL.createObjectURL(blob);audio.current=new Audio(audioURL.current);await audio.current.play();}catch(e){if(id===sequence.current)setError(e instanceof Error?e.message:'ხმა მიუწვდომელია.');}
+  try{controller.current=new AbortController();const blob=await withTimeout(async signal=>{const r=await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,rate}),signal});if(!r.ok){const e=await r.json();throw Error(e.detail||'ქართული ხმა მიუწვდომელია.');}return r.blob();},25000,controller.current.signal);if(id!==sequence.current)return;audioURL.current=URL.createObjectURL(blob);audio.current=new Audio(audioURL.current);await audio.current.play();}catch(e){if(id===sequence.current)setError(e instanceof Error?e.message:'ხმა მიუწვდომელია.');}
  }
  return <SpeechContext.Provider value={{speak,stop,engine,error,muted,setMuted:v=>{stop();setMuted(v);},rate,setRate,micActive,setMicActive:v=>{micRef.current=v;setMicActive(v);},pause:()=>{audio.current?.pause();},resume:()=>{if(micRef.current)return;void audio.current?.play();}}}>{children}</SpeechContext.Provider>;
 }
@@ -39,7 +40,7 @@ export function Recorder({onTranscript,onIssue,onBusy}:{onTranscript:(event:Reco
  function stop(){if(recorder.current?.state==='recording'){recorder.current.stop();release();setState('processing');setLevel(0);}}
  async function submit(generation:number,type:string,model:string){const ended=new Date().toISOString();release();if(generation!==seq.current)return;
   try{abort.current=new AbortController();const form=new FormData();form.append('audio',new Blob(chunks.current,{type}),type.includes('mp4')?'recording.mp4':type.includes('ogg')?'recording.ogg':'recording.webm');chunks.current=[];
-   const r=await fetch('/api/transcribe',{method:'POST',body:form,signal:AbortSignal.any([abort.current.signal,AbortSignal.timeout(120000)])});const data=await r.json();if(!r.ok)throw Error(typeof data.detail==='string'?data.detail:'ამოცნობა ვერ შესრულდა. სცადეთ ხელახლა.');if(generation!==seq.current)return;
+   const data=await withTimeout(async signal=>{const r=await fetch('/api/transcribe',{method:'POST',body:form,signal});const data=await r.json();if(!r.ok)throw Error(typeof data.detail==='string'?data.detail:'ამოცნობა ვერ შესრულდა. სცადეთ ხელახლა.');return data;},120000,abort.current.signal);if(generation!==seq.current)return;
    if(data.state==='no-speech'){setError('მეტყველება ვერ ამოიცნო. გაიმეორეთ ან შეიყვანეთ პასუხი ტექსტით.');onIssue?.('recognition-unresolved','მეტყველება ვერ ამოიცნო.');}
    else onTranscript({schema:1,raw:data.raw_transcript,engine:data.engine,model:data.model??model,recordingStartedAt:startAt.current,recordingEndedAt:ended,processingStartedAt:data.processing_started_at,processingEndedAt:data.processing_ended_at,processingMs:data.processing_ms,state:data.state});
   }catch(e){if(generation===seq.current){const message=e instanceof Error&&e.name==='TimeoutError'?'ამოცნობის დრო ამოიწურა. გაიმეორეთ ან შეიყვანეთ ტექსტი.':e instanceof TypeError?'ხმოვან სერვისთან დაკავშირება ვერ მოხერხდა. გამოიყენე ტექსტი.':e instanceof Error?e.message:'ხმოვანი სერვისი მიუწვდომელია.';setError(message);onIssue?.('technical-failure',message);}}

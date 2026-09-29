@@ -5,5 +5,6 @@ import '@fontsource/noto-sans-georgian/georgian-600.css';
 import '@fontsource/noto-sans-georgian/georgian-700.css';
 import './styles.css';
 import './glass.css';
+import './responsive.css';
 import App from './App';
 ReactDOM.createRoot(document.getElementById('root')!).render(<App/>);

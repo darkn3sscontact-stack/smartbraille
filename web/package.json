@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "test": "vitest run",
     "test:browser": "playwright test",
+    "test:responsive": "playwright test --config playwright.responsive.config.ts",
     "renders": "node ../scripts/export-renders.mjs"
   },
   "dependencies": {

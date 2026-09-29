@@ -42,3 +42,38 @@ local demonstration server was not replaced.
 
 The README gives the operator the commands and acceptance checks for these steps.
 Passing workstation tests is not a claim that the separate home server is already live.
+
+## Responsive and browser compatibility update
+
+The production build was also checked with the new `npm run test:responsive`
+suite. Its 32 tests cover four workflows in each of eight profiles:
+
+| Profile | Browser engine / viewport |
+|---|---|
+| Compact phone | Chromium, 320 x 568, touch/mobile |
+| Android | Chromium, Playwright Pixel 7 profile |
+| iPhone portrait | WebKit, Playwright iPhone 13 profile |
+| iPhone landscape | WebKit, Playwright iPhone 13 landscape profile |
+| iPad | WebKit, Playwright iPad Mini profile |
+| Desktop Chrome | Chromium, 1440 x 900 |
+| Desktop Firefox | Firefox, 1366 x 768 |
+| Desktop Safari engine | WebKit, 1280 x 800 |
+
+Checks passed for all 11 routes without page-level horizontal overflow, mobile
+navigation including Escape/focus and a 568 x 320 short viewport, long Georgian
+input, 16px mobile form text, 44px primary touch controls, and device exploration
+or its explicit WebGL fallback. Image-dialog controls remained usable within
+the viewport. Health requests and input also worked when `AbortSignal.any` and
+`AbortSignal.timeout` were unavailable.
+
+There are now 53 passing frontend unit tests, including four for portable request
+deadlines and cancellation. The 19 API tests also passed after these changes.
+The existing 22 browser regressions passed again in 40.9 seconds, including real
+speech playback and 3D interaction. Together with the 32 compatibility checks,
+the final run contains 126 passing tests.
+Desktop and narrow-screen layouts were visually inspected in the in-app browser.
+
+These browser-engine tests ran on Windows. They do not establish that physical
+iOS/Android devices, macOS/Linux installations, microphone hardware or the home's
+public network have been tested. The README's external-device checklist remains
+required before distributing the live domain.
