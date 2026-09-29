@@ -2,7 +2,11 @@
 
 An interactive Georgian-language website for learning Braille and exploring a six-dot tactile device. This repository contains the complete React frontend, Python speech backend, and native Windows Server deployment scripts.
 
-**To put the site online:** clone this repository onto the Windows Server, install/build it, point a public domain at the home connection, and run the included HTTPS setup. Visitors only need the resulting `https://YOUR-DOMAIN` link. They do not install Python, Node or any model.
+**To put the site online:** clone this repository onto the Windows Server, install/build it, point `biovita.ltd` at the home connection, and run the included HTTPS setup. After external verification, visitors only need `https://biovita.ltd`. They do not install Python, Node or any model.
+
+**Our domain:** we already owned `biovita.ltd` for an earlier project, so we are reusing it for SmartBraille instead of registering another domain. SmartBraille remains the project name. Selecting this address does not mean hosting or DNS is already configured.
+
+[Georgian Word deployment guide for biovita.ltd](output/docx/SmartBraille_Biovita_Windows_Server_KA.docx).
 
 Jump to: [device compatibility](#device-and-browser-compatibility) · [server installation](#2-clone-install-and-test-locally) · [domain and DNS](#3-public-hostname-and-home-network) · [public HTTPS launch](#4-configure-https-and-automatic-startup) · [external verification](#5-verify-from-outside-the-house).
 
@@ -92,17 +96,13 @@ Wait for `model_state: ready` and `voice_available: True`. Stop the foreground s
 
 ### 3. Public hostname and home network
 
-Use your own domain or a free [DuckDNS](https://www.duckdns.org/) subdomain, such as `YOUR-NAME.duckdns.org`. This is an example, not a registered project address.
-
-**With a domain you own:** open its registrar/DNS dashboard and choose one canonical hostname. For example, to use `braille.yourdomain.com`, add this record:
+The selected address is **`https://biovita.ltd`**. We are reusing our domain from an earlier project. Open the DNS dashboard for `biovita.ltd` and add or update the root A record when ready to move the domain to this server:
 
 | Type | Name / Host | Value | TTL |
 |---|---|---|---|
-| A | `braille` | Your router's public IPv4 address | 300 seconds, or provider default |
+| A | `@` | Your router's public IPv4 address | 300 seconds, or provider default |
 
-For the root domain `yourdomain.com`, use `@` instead of `braille`. An A record contains only the IP: no `https://`, port, or path. Choose one hostname and use exactly that hostname in the configuration commands. `www` is a separate hostname and is not configured automatically. Do not alter unrelated mail/MX records. If using Cloudflare DNS, start with **DNS only** so the direct Caddy setup can be verified first.
-
-**With a free DuckDNS name:** sign in to DuckDNS, register an available name, set its IP to the router's public IPv4 and use the complete `name.duckdns.org` hostname. A free subdomain is sufficient; a paid domain is optional.
+An A record contains only the IP: no `https://`, port, or path. Use `biovita.ltd` in the configuration commands below. `www.biovita.ltd` is a separate hostname and is not configured automatically. Updating the root record redirects visitors away from the earlier project's host. Do not alter unrelated mail/MX records. If using Cloudflare DNS, start with **DNS only** so the direct Caddy setup can be verified first.
 
 1. Point DNS at your home's **public internet IP**, not a `192.168.x.x` address.
 2. Reserve a fixed LAN address for the server in your router's DHCP settings.
@@ -113,7 +113,7 @@ For the root domain `yourdomain.com`, use `@` instead of `braille`. An A record 
 In a PowerShell window, confirm that DNS resolves to the expected public IP:
 
 ```powershell
-$Domain = 'YOUR-NAME.duckdns.org'   # Replace with your chosen real hostname.
+$Domain = 'biovita.ltd'
 Resolve-DnsName $Domain -Type A
 ```
 
@@ -139,8 +139,7 @@ Set-Location C:\Sites\smartbraille
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 .\scripts\download-caddy.ps1
 
-# Replace with the hostname you actually registered.
-$Domain = 'YOUR-NAME.duckdns.org'
+$Domain = 'biovita.ltd'
 .\scripts\configure-windows-server.ps1 -Domain $Domain
 .\scripts\install-windows-server.ps1 -OpenFirewall
 ```
@@ -156,7 +155,7 @@ Tasks run as the built-in **LOCAL SERVICE** account, start after reboot without 
 
 `-OpenFirewall` adds a named `SmartBraille-Web` rule for Caddy on TCP 80/443; it does not configure your router. Caddy automatically obtains/renews trusted certificates once DNS and inbound connectivity work. Keep port 80 available for redirects and certificate challenges.
 
-**What to send the jury:** `https://YOUR-NAME.duckdns.org` (substitute your real hostname), with no `:8000` suffix. They do not need a GitHub account, VPN or connection to your Wi-Fi. Do not distribute this link as ready until the external checks below pass. A GitHub repository URL shows source code, and a `127.0.0.1` URL works only on the computer opening it.
+**What to send the jury:** `https://biovita.ltd`, with no `:8000` suffix. They do not need a GitHub account, VPN or connection to your Wi-Fi. Do not distribute this link as ready until the external checks below pass. A GitHub repository URL shows source code, and a `127.0.0.1` URL works only on the computer opening it.
 
 Preview with `install-windows-server.ps1 -WhatIf` after prerequisite files exist. Use `-Replace` only when intentionally replacing these project's existing tasks. A different backend port can be selected during configuration with `-Port 8001`.
 
@@ -165,7 +164,7 @@ Preview with `install-windows-server.ps1 -WhatIf` after prerequisite files exist
 ```powershell
 Get-ScheduledTask -TaskName 'SmartBraille-*' | Select-Object TaskName,State
 Invoke-RestMethod http://127.0.0.1:8000/api/health
-.\.venv\Scripts\python.exe scripts/verify-public-url.py https://YOUR-NAME.duckdns.org
+.\.venv\Scripts\python.exe scripts/verify-public-url.py https://biovita.ltd
 ```
 
 On a phone, turn off Wi-Fi and open the HTTPS address over mobile data. Test:
@@ -254,8 +253,9 @@ Deployment is native Windows: Docker Desktop and Linux containers are not requir
 - `scripts/`: setup, build, model downloads, Windows hosting and checks.
 - `docs/`: operating guides and third-party notices.
 - `output/pdf/`: printable Georgian jury guide.
+- `output/docx/`: Georgian Windows Server deployment guide for biovita.ltd.
 - `deploy/`: deployment notes; runtime configuration is generated locally.
 
 Git excludes `.env`, model weights, private briefs/annexes, local recordings, dependency folders and deployment credentials. Third-party components retain their licenses; see [notices](docs/THIRD_PARTY_NOTICES.md). Original device image hashes are in `data/asset-manifest.json`.
 
-Reference documentation: [Caddy HTTPS](https://caddyserver.com/docs/automatic-https), [Uvicorn settings](https://www.uvicorn.org/settings/), [Windows Scheduled Tasks](https://learn.microsoft.com/en-us/powershell/module/scheduledtasks/) and [DuckDNS](https://www.duckdns.org/about.jsp).
+Reference documentation: [Caddy HTTPS](https://caddyserver.com/docs/automatic-https), [Uvicorn settings](https://www.uvicorn.org/settings/) and [Windows Scheduled Tasks](https://learn.microsoft.com/en-us/powershell/module/scheduledtasks/).
